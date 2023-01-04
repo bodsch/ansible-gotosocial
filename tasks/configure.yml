@@ -1,0 +1,26 @@
+---
+
+- name: create gotosocial configuration directory
+  ansible.builtin.file:
+    path: "{{ gotosocial_config_dir }}"
+    state: directory
+    owner: root
+    group: "{{ gotosocial_system_group }}"
+    mode: 0775
+
+- name: create config.yml
+  ansible.builtin.template:
+    src: "gotosocial/config.yml.j2"
+    dest: "{{ gotosocial_config_dir }}/config.yml"
+    force: true
+    owner: root
+    group: "{{ gotosocial_system_group }}"
+    mode: 0664
+  notify:
+    - validate config
+    - reload gotosocial
+
+- name: restart gotosocial if needed
+  ansible.builtin.meta: flush_handlers
+
+...

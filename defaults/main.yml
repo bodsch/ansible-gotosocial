@@ -1,0 +1,29 @@
+---
+
+gotosocial_version: 0.6.0
+
+# https://github.com/superseriousbusiness/gotosocial/releases/download/v0.6.0/gotosocial_0.6.0_linux_amd64.tar.gz
+
+gotosocial_release_download_url: https://github.com/superseriousbusiness/gotosocial/releases
+
+gotosocial_system_user: gotosocial
+gotosocial_system_group: gotosocial
+gotosocial_config_dir: /etc/gotosocial
+
+gotosocial_direct_download: false
+
+gotosocial_service: {}
+gotosocial_log: {}
+gotosocial_storage: {}
+gotosocial_auth: {}
+gotosocial_middleware: {}
+gotosocial_reporting: {}
+gotosocial_http: {}
+gotosocial_notifications: {}
+gotosocial_redis: {}
+gotosocial_health: {}
+gotosocial_proxy: {}
+gotosocial_compatibility: {}
+gotosocial_validation: {}
+
+...

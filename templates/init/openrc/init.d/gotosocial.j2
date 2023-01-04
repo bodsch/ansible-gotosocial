@@ -1,0 +1,41 @@
+#!/usr/bin/openrc-run
+
+description=""
+pidfile=${pidfile:-"/run/${RC_SVCNAME}.pid"}
+user=${user:-${SVCNAME}}
+group=${group:-${SVCNAME}}
+
+command="/usr/bin/gotosocial"
+supervisor="supervise-daemon"
+
+command_args="${command_args:-serve /etc/gotosocial/config.yml}"
+command_user="${user}:${group}"
+
+command_args_background="--background"
+required_files="/etc/gotosocial/config.yml"
+
+output_log="/var/log/${RC_SVCNAME}/${RC_SVCNAME}.log"
+error_log="${output_log}"
+extra_started_commands="reload"
+
+depend() {
+  # need localmount net
+  # use dns
+  after sysfs net
+}
+
+start_pre() {
+  [ -d $(dirname ${output_log}) ] ||  mkdir $(dirname ${output_log})
+  chown -R ${command_user} $(dirname ${output_log})
+  chown -R ${command_user} {{ gotosocial_data_dir }}
+}
+
+reload() {
+  ebegin "Reloading ${SVCNAME}"
+  if [ ! -r "${pidfile}" ]; then
+    eend 1 "${RC_SVCNAME} not running"
+  else
+    kill -s HUP $(cat "${pidfile}") 2> /dev/null
+    eend $?
+  fi
+}

@@ -1,0 +1,44 @@
+---
+
+gotosocial_main_version: "{{ gotosocial_version[0:3] }}"
+
+gotosocial_install_path: /usr/local/bin/gotosocial/{{ gotosocial_version }}
+
+gotosocial_delegate_to: localhost
+
+gotosocial_local_tmp_directory: "{{
+  lookup('env', 'CUSTOM_LOCAL_TMP_DIRECTORY') |
+  default(lookup('env', 'HOME') ~ '/.cache/ansible/gotosocial', true) }}/{{ gotosocial_version }}"
+
+gotosocial_requirements:
+  - iproute2
+  - gzip
+
+# ----------------------------------------------------------------------------------------
+
+gotosocial_defaults_service: {}
+
+# ----------------------------------------------------------------------------------------
+
+gotosocial_defaults_directory: /etc/default
+
+# https://github.com/superseriousbusiness/gotosocial/releases/download/v0.6.0/gotosocial_0.6.0_linux_amd64.tar.gz
+# https://github.com/superseriousbusiness/gotosocial/releases/download/v0.6.0/checksums.txt
+
+__gotosocial_files:
+  archive: "gotosocial_{{ gotosocial_version }}_linux_{{ system_architecture }}.tar.gz"
+  assets: "gotosocial_{{ gotosocial_version }}_web-assets.tar.gz"
+  checksum: "checksums.txt"
+  binary: "gotosocial_{{ gotosocial_version }}_linux_{{ system_architecture }}.tar.gz"
+
+go_arch_map:
+  x86_64: 'amd64'
+  aarch64: 'arm64'
+  armv7l: 'armv7'
+  armv6l: 'armv6'
+
+system_architecture: "{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}"
+
+systemd_lib_directory: /lib/systemd/system
+
+...

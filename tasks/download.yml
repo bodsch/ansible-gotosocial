@@ -1,0 +1,68 @@
+---
+
+- name: define checksum
+  delegate_to: localhost
+  run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
+  block:
+    - name: get checksum list
+      ansible.builtin.set_fact:
+        __gotosocial_checksums: "{{ lookup('url', gotosocial_release_download_url + '/download/v' + gotosocial_version + '/' + __gotosocial_files.checksum, wantlist=True) | list }}"
+      run_once: true
+
+    - name: get checksum for {{ system_architecture }} architecture
+      ansible.builtin.set_fact:
+        __gotosocial_checksum: "{{ __gotosocial_checksums | gotosocial_checksum('linux', system_architecture) }}"
+
+    - name: get checksum for web-assets
+      ansible.builtin.set_fact:
+        __gotosocial_assets_checksum: "{{ __gotosocial_checksums | gotosocial_assets_checksum() }}"
+
+- name: download gotosocial binary archive
+  become: false
+  delegate_to: "{{ gotosocial_delegate_to }}"
+  ansible.builtin.get_url:
+    url: "{{ gotosocial_release_download_url }}/download/v{{ gotosocial_version }}/{{ __gotosocial_files.archive }}"
+    dest: "{{ gotosocial_local_tmp_directory }}/"
+    checksum: "sha256:{{ __gotosocial_checksum }}"
+    mode: 0660
+  register: _download_archive
+  until: _download_archive is succeeded
+  retries: 5
+  delay: 2
+  check_mode: false
+
+- name: download web-assets archive
+  become: false
+  delegate_to: "{{ gotosocial_delegate_to }}"
+  ansible.builtin.get_url:
+    url: "{{ gotosocial_release_download_url }}/download/v{{ gotosocial_version }}/{{ __gotosocial_files.assets }}"
+    dest: "{{ gotosocial_local_tmp_directory }}/"
+    checksum: "sha256:{{ __gotosocial_assets_checksum }}"
+    mode: 0660
+  register: _download_archive
+  until: _download_archive is succeeded
+  retries: 5
+  delay: 2
+  check_mode: false
+
+- name: extract gotosocial archive
+  become: false
+  delegate_to: "{{ gotosocial_delegate_to }}"
+  run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
+  ansible.builtin.unarchive:
+    src: "{{ gotosocial_local_tmp_directory }}/{{ __gotosocial_files.binary }}"
+    dest: "{{ gotosocial_local_tmp_directory }}"
+    copy: false
+  register: _extract_archive
+
+# - name: extract web-assets archive
+#   become: false
+#   delegate_to: "{{ gotosocial_delegate_to }}"
+#   run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
+#   ansible.builtin.unarchive:
+#     src: "{{ gotosocial_local_tmp_directory }}/{{ __gotosocial_files.assets }}"
+#     dest: "{{ gotosocial_local_tmp_directory }}"
+#     copy: false
+#   register: _extract_archive
+
+...

@@ -1,0 +1,6 @@
+---
+
+gotosocial_requirements:
+  - iproute
+
+...

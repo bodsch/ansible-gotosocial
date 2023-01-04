@@ -1,0 +1,10 @@
+---
+
+- name: ensure gotosocial is enabled on boot
+  become: true
+  ansible.builtin.service:
+    name: gotosocial
+    enabled: true
+    state: started
+
+...

@@ -1,0 +1,99 @@
+---
+
+- name: detect binary file for gotosocial on {{ gotosocial_delegate_to }}
+  become: false
+  delegate_to: "{{ gotosocial_delegate_to }}"
+  ansible.builtin.stat:
+    path: "{{ gotosocial_local_tmp_directory }}/gotosocial"
+  register: stat_file_binary
+
+- name: propagate gotosocial binaries
+  ansible.builtin.copy:
+    src: "{{ gotosocial_local_tmp_directory }}/gotosocial"
+    dest: "{{ gotosocial_install_path }}/gotosocial"
+    mode: 0755
+    owner: "{{ gotosocial_system_user }}"
+    group: "{{ gotosocial_system_group }}"
+    remote_src: "{{ 'true' if gotosocial_direct_download else 'false' }}"
+  when:
+    - stat_file_binary.stat.exists
+
+- name: make files executable
+  ansible.builtin.file:
+    path: "{{ gotosocial_install_path }}/gotosocial"
+    mode: 0755
+    owner: "{{ gotosocial_system_user }}"
+    group: "{{ gotosocial_system_group }}"
+
+- name: create local facts
+  ansible.builtin.template:
+    src: ansible_facts.j2
+    dest: /etc/ansible/facts.d/gotosocial.fact
+    mode: 0755
+
+- name: create gotosocial data directory
+  ansible.builtin.file:
+    state: directory
+    path: "{{ gotosocial_data_dir }}"
+    mode: 0770
+    owner: "{{ gotosocial_system_user }}"
+    group: "{{ gotosocial_system_group }}"
+
+- name: create link to binary
+  ansible.builtin.file:
+    src: "{{ gotosocial_install_path }}/gotosocial"
+    dest: "/usr/bin/gotosocial"
+    state: link
+    force: true
+    follow: false
+  notify:
+    - restart gotosocial
+
+- name: systemd
+  when:
+    - ansible_service_mgr | lower == "systemd"
+  block:
+    - name: create systemd service unit
+      ansible.builtin.template:
+        src: "init/systemd/gotosocial.service.j2"
+        dest: "{{ systemd_lib_directory }}/gotosocial.service"
+        owner: root
+        group: root
+        mode: 0644
+      notify:
+        - daemon-reload
+        - restart gotosocial
+
+    # - name: create systemd service configuration
+    #   ansible.builtin.template:
+    #     src: "gotosocial.j2"
+    #     dest: "{{ gotosocial_defaults_directory }}/gotosocial"
+    #     force: true
+    #     owner: root
+    #     group: "{{ gotosocial_system_group }}"
+    #     mode: 0640
+    #   notify:
+    #     - validate config
+    #     - reload gotosocial
+
+- name: openrc
+  when:
+    - ansible_service_mgr | lower == "openrc"
+  block:
+    - name: create openrc service configuration
+      ansible.builtin.template:
+        src: "init/openrc/conf.d/gotosocial.j2"
+        dest: "/etc/conf.d/gotosocial"
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: create openrc init file
+      ansible.builtin.template:
+        src: "init/openrc/init.d/gotosocial.j2"
+        dest: "/etc/init.d/gotosocial"
+        owner: root
+        group: root
+        mode: 0750
+
+...
