@@ -104,23 +104,7 @@ def local_facts(host):
     """
       return local facts
     """
-    return host.ansible("setup").get("ansible_facts").get("ansible_local").get("registry")
-
-
-def test_directories(host, get_vars):
-    """
-    """
-    root_dir = get_vars.get("gotosocial_storage", {}).get("filesystem", {}).get("rootdirectory", {})
-
-    directories = []
-    directories.append("/etc/docker/registry")
-
-    if root_dir:
-        directories.append(root_dir)
-
-    for dirs in directories:
-        d = host.file(dirs)
-        assert d.is_directory
+    return host.ansible("setup").get("ansible_facts").get("ansible_local").get("gotosocial")
 
 
 def test_files(host, get_vars):
@@ -142,12 +126,12 @@ def test_files(host, get_vars):
         install_dir = install_dir.replace('latest', version)
 
     files = []
-    files.append("/usr/bin/registry")
+    files.append("/usr/bin/gotosocial")
 
     if install_dir:
-        files.append(f"{install_dir}/registry")
+        files.append(f"{install_dir}/gotosocial")
     if defaults_dir and not distribution == "artix":
-        files.append(f"{defaults_dir}/registry")
+        files.append(f"{defaults_dir}/gotosocial")
     if config_dir:
         files.append(f"{config_dir}/config.yml")
 
@@ -155,15 +139,14 @@ def test_files(host, get_vars):
 
     for _file in files:
         f = host.file(_file)
-        assert f.exists
         assert f.is_file
 
 
 def test_user(host, get_vars):
     """
     """
-    user = get_vars.get("gotosocial_system_user", "registry")
-    group = get_vars.get("gotosocial_system_group", "registry")
+    user = get_vars.get("gotosocial_system_user", "gotosocial")
+    group = get_vars.get("gotosocial_system_group", "gotosocial")
 
     assert host.group(group).exists
     assert host.user(user).exists
@@ -172,7 +155,7 @@ def test_user(host, get_vars):
 
 
 def test_service(host, get_vars):
-    service = host.service("registry")
+    service = host.service("gotosocial")
     assert service.is_enabled
     assert service.is_running
 
@@ -180,7 +163,7 @@ def test_service(host, get_vars):
 def test_open_port(host, get_vars):
     """
     """
-    listen_address = "127.0.0.1:5000"
+    listen_address = "127.0.0.1:8080"
 
     service = host.socket(f"tcp://{listen_address}")
     assert service.is_listening
