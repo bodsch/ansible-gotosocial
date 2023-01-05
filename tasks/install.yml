@@ -18,6 +18,24 @@
   when:
     - stat_file_binary.stat.exists
 
+- name: propagate gotosocial asset
+  ansible.builtin.copy:
+    src: "{{ gotosocial_local_tmp_directory }}/{{ __gotosocial_files.assets }}"
+    dest: "{{ gotosocial_data_dir }}/"
+    mode: 0755
+    owner: "{{ gotosocial_system_user }}"
+    group: "{{ gotosocial_system_group }}"
+    remote_src: "{{ 'true' if gotosocial_direct_download else 'false' }}"
+  when:
+    - stat_file_binary.stat.exists
+
+- name: extract web-assets archive
+  ansible.builtin.unarchive:
+    src: "{{ gotosocial_data_dir }}/{{ __gotosocial_files.assets }}"
+    dest: "{{ gotosocial_install_path }}/"
+    copy: false
+  register: _extract_archive
+
 - name: make files executable
   ansible.builtin.file:
     path: "{{ gotosocial_install_path }}/gotosocial"
@@ -43,6 +61,32 @@
   ansible.builtin.file:
     src: "{{ gotosocial_install_path }}/gotosocial"
     dest: "/usr/bin/gotosocial"
+    state: link
+    force: true
+    follow: false
+  notify:
+    - restart gotosocial
+    -
+- name: create gotosocial data directory
+  file:
+    path: "{{ gotosocial_data_dir }}"
+    state: directory
+    owner: "{{ gotosocial_system_user }}"
+    group: "{{ gotosocial_system_group }}"
+    mode: 0755
+
+- name: create gotosocial local storage directory
+  file:
+    path: "{{ gotosocial_config.storage.local_base_path }}"
+    state: directory
+    owner: "{{ gotosocial_system_user }}"
+    group: "{{ gotosocial_system_group }}"
+    mode: 0755
+
+- name: create link to assets
+  ansible.builtin.file:
+    src: "{{ gotosocial_install_path }}/web"
+    dest: "{{ gotosocial_data_dir }}/web"
     state: link
     force: true
     follow: false

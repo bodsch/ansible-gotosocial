@@ -10,7 +10,7 @@ Environment       = "GOMAXPROCS={{ ansible_processor_vcpus | default(ansible_pro
 
 User              = {{ gotosocial_system_user }}
 Group             = {{ gotosocial_system_group }}
-WorkingDirectory  = {{ gotosocial_install_path }}
+WorkingDirectory  = {{ gotosocial_data_dir }}
 
 ExecReload        = /bin/kill -HUP $MAINPID
 ExecStart         = /usr/bin/gotosocial --config-path {{ gotosocial_config_dir }}/config.yml server start

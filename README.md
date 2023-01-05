@@ -49,139 +49,24 @@ If you want to use something stable, please use a [Tagged Version](https://githu
 ## Configuration
 
 ```yaml
-gotosocial_version: 2.8.1
+gotosocial_version: 0.6.0
 
-gotosocial_release_download_url: https://github.com/distribution/distribution/releases
+gotosocial_release_download_url: https://github.com/superseriousbusiness/gotosocial/releases
 
 gotosocial_system_user: gotosocial
 gotosocial_system_group: gotosocial
-gotosocial_config_dir: /etc/docker/gotosocial
+gotosocial_config_dir: /etc/gotosocial
+gotosocial_data_dir: /var/lib/gotosocial
 
 gotosocial_direct_download: false
 
 gotosocial_service: {}
-gotosocial_log: {}
-gotosocial_storage: {}
-gotosocial_auth: {}
-gotosocial_middleware: {}
-gotosocial_reporting: {}
-gotosocial_http: {}
-gotosocial_notifications: {}
-gotosocial_redis: {}
-gotosocial_health: {}
-gotosocial_proxy: {}
-gotosocial_compatibility: {}
-gotosocial_validation: {}
+gotosocial_config: {}
 ```
 
-### `gotosocial_log`
 
-[upstream doku](https://github.com/distribution/distribution/blob/main/docs/configuration.md#log)
-
-```yaml
-gotosocial_log:
-  accesslog:
-    disabled: true
-  level: info
-  formatter: text
-  fields: {}
-```
-
-### `gotosocial_storage`
-
-[upstream doku](https://github.com/distribution/distribution/blob/main/docs/configuration.md#storage)
-```yaml
-gotosocial_storage:
-  filesystem:
-    rootdirectory: /var/lib/gotosocial
-    maxthreads: 100
-  delete:
-    enabled: false
-  cache:
-    blobdescriptorsize: 10000
-
-```
-
-### `gotosocial_auth`
-
-[upstream doku](https://github.com/distribution/distribution/blob/main/docs/configuration.md#auth)
-```yaml
-gotosocial_auth: {}
-```
-
-### `gotosocial_middleware`
-
-[upstream doku](https://github.com/distribution/distribution/blob/main/docs/configuration.md#middleware)
-```yaml
-gotosocial_middleware: {}
-```
-
-### `gotosocial_reporting`
-
-[upstream doku](https://github.com/distribution/distribution/blob/main/docs/configuration.md#reporting)
-```yaml
-gotosocial_reporting: {}
-```
-
-### `gotosocial_http`
-
-[upstream doku](https://github.com/distribution/distribution/blob/main/docs/configuration.md#http)
-```yaml
-
-gotosocial_http:
-  addr: localhost:5000
-  secret: "{{ ansible_host | b64encode }}"
-  relativeurls: true
-  debug:
-    addr: localhost:5001
-    prometheus:
-      enabled: true
-      path: /metrics
-```
-
-### `gotosocial_notifications`
-
-[upstream doku](https://github.com/distribution/distribution/blob/main/docs/configuration.md#notifications)
-```yaml
-gotosocial_notifications: {}
-```
-
-### `gotosocial_redis`
-
-[upstream doku](https://github.com/distribution/distribution/blob/main/docs/configuration.md#redis)
-```yaml
-gotosocial_redis: {}
-```
-
-### `gotosocial_health`
-
-[upstream doku](https://github.com/distribution/distribution/blob/main/docs/configuration.md#health)
-```yaml
-gotosocial_health: {}
-```
-
-### `gotosocial_proxy`
-
-[upstream doku](https://github.com/distribution/distribution/blob/main/docs/configuration.md#proxy)
-
-```yaml
-gotosocial_proxy: {}
-```
-
-### `gotosocial_compatibility`
-
-[upstream doku](https://github.com/distribution/distribution/blob/main/docs/configuration.md#compatibility)
-```yaml
-gotosocial_compatibility: {}
-```
-
-### `gotosocial_validation`
-
-[upstream doku](https://github.com/distribution/distribution/blob/main/docs/configuration.md#validation)
-```yaml
-gotosocial_validation: {}
-```
-
+https://docs.gotosocial.org/en/latest
+https://github.com/superseriousbusiness/gotosocial
 
 ---
 

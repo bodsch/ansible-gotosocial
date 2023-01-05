@@ -19,8 +19,7 @@ platforms:
     privileged: true
     pre_build_image: true
     published_ports:
-      - 5000:5000
-      - 5001:5001
+      - 8080:8080
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
@@ -28,7 +27,7 @@ provisioner:
   name: ansible
   ansible_args:
     - --diff
-    - -v
+    # - -v
   config_options:
     defaults:
       deprecation_warnings: true

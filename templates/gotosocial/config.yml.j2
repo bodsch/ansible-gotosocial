@@ -20,17 +20,22 @@
 ##### GENERAL CONFIG ######
 ###########################
 
+{% if gotosocial_config.general.log_level is defined and
+      gotosocial_config.general.log_level in ["trace","debug","info","warn","error","fatal"] %}
 # String. Log level to use throughout the application. Must be lower-case.
 # Options: ["trace","debug","info","warn","error","fatal"]
 # Default: "info"
-log-level: "info"
+log-level: "{{ gotosocial_config.general.log_level }}"
+{% endif %}
 
+{% if gotosocial_config.general.log_db_queries is defined %}
 # Bool. Log database queries when log-level is set to debug or trace.
 # This setting produces verbose logs, so it's better to only enable it
 # when you're trying to track an issue down.
 # Options: [true, false]
 # Default: false
-log-db-queries: false
+log-db-queries: {{ gotosocial_config.general.log_db_queries | bool | ternary('true', 'false') }}
+{% endif %}
 
 # String. Application name to use internally.
 # Examples: ["My Application","gotosocial"]
@@ -108,12 +113,16 @@ trusted-proxies:
 ############################
 
 # Config pertaining to the Gotosocial database connection
-
+{% if gotosocial_config.database.type is defined and
+      gotosocial_config.database.type in ["postgres","sqlite"] %}
 # String. Database type.
 # Options: ["postgres","sqlite"]
 # Default: "postgres"
-db-type: "sqlite"
+db-type: "{{ gotosocial_config.database.type }}"
+{% endif %}
 
+{% if gotosocial_config.database.address is defined and
+      gotosocial_config.database.address | string | length > 0 %}
 # String. Database address or parameters.
 #
 # For Postgres, this should be the address or socket at which the database can be reached.
@@ -127,7 +136,8 @@ db-type: "sqlite"
 #
 # Examples: ["localhost","my.db.host","127.0.0.1","192.111.39.110",":memory:", "sqlite.db"]
 # Default: ""
-db-address: "/opt/gotosocial.db"
+db-address: "{{ gotosocial_config.database.address }}"
+{% endif %}
 
 # Int. Port for database connection.
 # Examples: [5432, 1234, 6969]
@@ -170,16 +180,20 @@ db-tls-ca-cert: ""
 
 # Config pertaining to templating and serving of web pages/email notifications and the like
 
+{% if gotosocial_config.web.template_base_dir is defined and
+      gotosocial_config.web.template_base_dir | string | length > 0 %}
 # String. Directory from which gotosocial will attempt to load html templates (.tmpl files).
 # Examples: ["/some/absolute/path/", "./relative/path/", "../../some/weird/path/"]
 # Default: "./web/template/"
-web-template-base-dir: "./web/template/"
-
+web-template-base-dir: "{{ gotosocial_config.web.template_base_dir }}"
+{% endif %}
+{% if gotosocial_config.web.asset_base_dir is defined and
+      gotosocial_config.web.asset_base_dir | string | length > 0 %}
 # String. Directory from which gotosocial will attempt to serve static web assets (images, scripts).
 # Examples: ["/some/absolute/path/", "./relative/path/", "../../some/weird/path/"]
 # Default: "./web/assets/"
-web-asset-base-dir: "./web/assets/"
-
+web-asset-base-dir: "{{ gotosocial_config.web.asset_base_dir }}"  #./web/assets/"
+{% endif %}
 ###########################
 ##### INSTANCE CONFIG #####
 ###########################
@@ -320,7 +334,7 @@ media-emoji-remote-max-size: 102400
 # String. Type of storage backend to use.
 # Examples: ["local", "s3"]
 # Default: "local" (storage on local disk)
-storage-backend: "local"
+storage-backend: "{{ gotosocial_config.storage.backend | default('local') }}"
 
 # String. Directory to use as a base path for storing files.
 # Make sure whatever user/group gotosocial is running as has permission to access
@@ -328,7 +342,7 @@ storage-backend: "local"
 # Only required when running with the local storage backend.
 # Examples: ["/home/gotosocial/storage", "/opt/gotosocial/datastorage"]
 # Default: "/gotosocial/storage"
-storage-local-base-path: "/gotosocial/storage"
+storage-local-base-path: "{{ gotosocial_config.storage.local_base_path }}"
 
 # String. API endpoint of the S3 compatible service.
 # Only required when running with the s3 storage backend.

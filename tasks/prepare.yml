@@ -129,6 +129,7 @@
 - name: merge gotosocial configuration between defaults and custom
   ansible.builtin.set_fact:
     gotosocial_service: "{{ gotosocial_defaults_service | combine(gotosocial_service, recursive=True) }}"
+    gotosocial_config: "{{ gotosocial_defaults_config | combine(gotosocial_config, recursive=True) }}"
 
 - name: define gotosocial data directory
   ansible.builtin.set_fact:
