@@ -53,7 +53,7 @@
   ansible.builtin.file:
     state: directory
     path: "{{ gotosocial_data_dir }}"
-    mode: 0770
+    mode: 0750
     owner: "{{ gotosocial_system_user }}"
     group: "{{ gotosocial_system_group }}"
 
@@ -66,17 +66,17 @@
     follow: false
   notify:
     - restart gotosocial
-    -
-- name: create gotosocial data directory
-  file:
-    path: "{{ gotosocial_data_dir }}"
-    state: directory
-    owner: "{{ gotosocial_system_user }}"
-    group: "{{ gotosocial_system_group }}"
-    mode: 0755
+
+# - name: create gotosocial data directory
+#   ansible.builtin.file:
+#     path: "{{ gotosocial_data_dir }}"
+#     state: directory
+#     owner: "{{ gotosocial_system_user }}"
+#     group: "{{ gotosocial_system_group }}"
+#     mode: 0755
 
 - name: create gotosocial local storage directory
-  file:
+  ansible.builtin.file:
     path: "{{ gotosocial_config.storage.local_base_path }}"
     state: directory
     owner: "{{ gotosocial_system_user }}"

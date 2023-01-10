@@ -1,0 +1,22 @@
+
+######################
+##### WEB CONFIG #####
+######################
+
+# Config pertaining to templating and serving of web pages/email notifications and the like
+
+{% if gotosocial_config.web.template_base_dir is defined and
+      gotosocial_config.web.template_base_dir | string | length > 0 %}
+# String. Directory from which gotosocial will attempt to load html templates (.tmpl files).
+# Examples: ["/some/absolute/path/", "./relative/path/", "../../some/weird/path/"]
+# Default: "./web/template/"
+web-template-base-dir: "{{ gotosocial_config.web.template_base_dir }}"
+{% endif %}
+
+{% if gotosocial_config.web.asset_base_dir is defined and
+      gotosocial_config.web.asset_base_dir | string | length > 0 %}
+# String. Directory from which gotosocial will attempt to serve static web assets (images, scripts).
+# Examples: ["/some/absolute/path/", "./relative/path/", "../../some/weird/path/"]
+# Default: "./web/assets/"
+web-asset-base-dir: "{{ gotosocial_config.web.asset_base_dir }}"
+{% endif %}

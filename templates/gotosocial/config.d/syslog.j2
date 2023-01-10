@@ -1,0 +1,33 @@
+
+#########################
+##### SYSLOG CONFIG #####
+#########################
+
+# Config for additional syslog log hooks. See https://en.wikipedia.org/wiki/Syslog,
+# and https://github.com/sirupsen/logrus/tree/master/hooks/syslog.
+#
+# These settings are useful when one wants to daemonize GoToSocial and send logs
+# to a specific place, either a local location or a syslog server. Most users will
+# not need to touch these settings.
+
+{% if gotosocial_config.syslog.enabled is defined and
+      gotosocial_config.syslog.enabled %}
+# Bool. Enable the syslog logging hook. Logs will be mirrored to the configured destination.
+# Options: [true, false]
+# Default: false
+syslog-enabled: {{ gotosocial_config.syslog.enabled | bool | ternary('true', 'false') }}
+
+  {% if gotosocial_config.syslog.protocol is defined or
+        gotosocial_config.syslog.protocol in ["udp", "tcp"] %}
+# String. Protocol to use when directing logs to syslog. Leave empty to connect to local syslog.
+# Options: ["udp", "tcp", ""]
+# Default: "tcp"
+syslog-protocol: "{{ gotosocial_config.syslog.protocol }}"
+  {% endif %}
+  {% if gotosocial_config.syslog.address is defined and
+        gotosocial_config.syslog.address %}
+# String. Address:port to send syslog logs to. Leave empty to connect to local syslog.
+# Default: "localhost:514"
+syslog-address: "{{ gotosocial_config.syslog.address }}"
+  {% endif %}
+{% endif %}
