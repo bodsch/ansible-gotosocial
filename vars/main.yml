@@ -166,8 +166,13 @@ gotosocial_defaults_config:
       - "profile"
       - "groups"
 
-
   smtp:
+    host: ""
+    port: 0
+    username: ""
+    password: ""
+    from: ""
+
   syslog:
     enabled: false
     # String. Protocol to use when directing logs to syslog. Leave empty to connect to local syslog.
@@ -179,8 +184,8 @@ gotosocial_defaults_config:
     address: "localhost:514"
 
   advanced:
-
-
+    cookies_samesite: "lax"
+    rate_limit_requests: 1000
 
 # ----------------------------------------------------------------------------------------
 

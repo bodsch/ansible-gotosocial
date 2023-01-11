@@ -1,5 +1,5 @@
 ---
-name: registry with configuration
+name: gotosocial with configuration
 
 on:
   schedule:

@@ -13,6 +13,8 @@
 # Nevertheless, they are provided for the sake of allowing server admins to
 # tweak their instance for performance or security reasons.
 
+{% if gotosocial_config.advanced.cookies_samesite is defined and
+      gotosocial_config.advanced.cookies_samesite in ["lax", "strict"] %}
 # String. Value of the SameSite attribute of cookies set by GoToSocial.
 # Defaults to 'lax' to ensure that the OIDC flow does not break, which is
 # fine in most cases. If you want to harden your instance against CSRF attacks
@@ -24,8 +26,11 @@
 #
 # Options: ["lax", "strict"]
 # Default: "lax"
-advanced-cookies-samesite: "lax"
+advanced-cookies-samesite: "{{ gotosocial_config.advanced.cookies_samesite }}"
+{% endif %}
 
+{% if gotosocial_config.advanced.rate_limit_requests is defined and
+      gotosocial_config.advanced.rate_limit_requests | string | length > 0 %}
 # Int. Amount of requests to permit from a single IP address within a span of 5 minutes.
 # If this amount is exceeded, a 429 HTTP error code will be returned.
 # See https://docs.gotosocial.org/en/latest/api/swagger/#rate-limit.
@@ -41,4 +46,5 @@ advanced-cookies-samesite: "lax"
 #
 # Examples: [1000, 500, 0]
 # Default: 1000
-advanced-rate-limit-requests: 1000
+advanced-rate-limit-requests: {{ gotosocial_config.advanced.rate_limit_requests }}
+{% endif %}

@@ -5,42 +5,60 @@
 
 # Config for authentication with an external OIDC provider (Dex, Google, Auth0, etc).
 
+{% if gotosocial_config.oidc.enabled is defined %}
 # Bool. Enable authentication with external OIDC provider. If set to true, then
 # the other OIDC options must be set as well. If this is set to false, then the standard
 # internal oauth flow will be used, where users sign in to GtS with username/password.
 # Options: [true, false]
 # Default: false
-oidc-enabled: false
+oidc-enabled: {{ gotosocial_config.oidc.enabled | bool | ternary('true', 'false') }}
+  {% if gotosocial_config.oidc.enabled %}
 
+    {% if gotosocial_config.oidc.idp_name is defined and
+          gotosocial_config.oidc.idp_name | string | length > 0 %}
 # String. Name of the oidc idp (identity provider). This will be shown to users when
 # they log in.
 # Examples: ["Google", "Dex", "Auth0"]
 # Default: ""
-oidc-idp-name: ""
+oidc-idp-name: "{{ gotosocial_config.oidc.idp_name }}
+    {% endif %}
 
+    {% if gotosocial_config.oidc.skip_verification is defined %}
 # Bool. Skip the normal verification flow of tokens returned from the OIDC provider, ie.,
 # don't check the expiry or signature. This should only be used in debugging or testing,
 # never ever in a production environment as it's extremely unsafe!
 # Options: [true, false]
 # Default: false
-oidc-skip-verification: false
+oidc-skip-verification: {{ gotosocial_config.oidc.skip_verification | bool | ternary('true', 'false') }}
+    {% endif %}
 
+    {% if gotosocial_config.oidc.issuer is defined and
+          gotosocial_config.oidc.issuer | string | length > 0 %}
 # String. The OIDC issuer URI. This is where GtS will redirect users to for login.
 # Typically this will look like a standard web URL.
 # Examples: ["https://auth.example.org", "https://example.org/auth"]
 # Default: ""
-oidc-issuer: ""
+oidc-issuer: "{{ gotosocial_config.oidc.issuer }}"
+    {% endif %}
 
+    {% if gotosocial_config.oidc.client_id is defined and
+          gotosocial_config.oidc.client_id | string | length > 0 %}
 # String. The ID for this client as registered with the OIDC provider.
 # Examples: ["some-client-id", "fda3772a-ad35-41c9-9a59-f1943ad18f54"]
 # Default: ""
-oidc-client-id: ""
+oidc-client-id: "{{ gotosocial_config.oidc.client_id }}
+    {% endif %}
 
+    {% if gotosocial_config.oidc.client_secret is defined and
+          gotosocial_config.oidc.client_secret | string | length > 0 %}
 # String. The secret for this client as registered with the OIDC provider.
 # Examples: ["super-secret-business", "79379cf5-8057-426d-bb83-af504d98a7b0"]
 # Default: ""
-oidc-client-secret: ""
+oidc-client-secret: "{{ gotosocial_config.oidc.client_secret }}"
+    {% endif %}
 
+    {% if gotosocial_config.oidc.scopes is defined and
+          gotosocial_config.oidc.scopes | count > 0 %}
 # Array of string. Scopes to request from the OIDC provider. The returned values will be used to
 # populate users created in GtS as a result of the authentication flow. 'openid' and 'email' are required.
 # 'profile' is used to extract a username for the newly created user.
@@ -48,7 +66,9 @@ oidc-client-secret: ""
 # Examples: See eg., https://auth0.com/docs/scopes/openid-connect-scopes
 # Default: ["openid", "email", "profile", "groups"]
 oidc-scopes:
-  - "openid"
-  - "email"
-  - "profile"
-  - "groups"
+      {% for scope in gotosocial_config.oidc.scopes %}
+  - "{{ scope }}"
+      {% endfor %}
+    {% endif %}
+  {% endif %}
+{% endif %}

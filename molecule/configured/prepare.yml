@@ -37,8 +37,6 @@
   roles:
     - role: syslog-ng
     - role: snakeoil
-    - role: redis
-    # - role: htpasswd
     - role: nginx
 
 ...

@@ -67,14 +67,6 @@
   notify:
     - restart gotosocial
 
-# - name: create gotosocial data directory
-#   ansible.builtin.file:
-#     path: "{{ gotosocial_data_dir }}"
-#     state: directory
-#     owner: "{{ gotosocial_system_user }}"
-#     group: "{{ gotosocial_system_group }}"
-#     mode: 0755
-
 - name: create gotosocial local storage directory
   ansible.builtin.file:
     path: "{{ gotosocial_config.storage.local_base_path }}"
@@ -108,17 +100,17 @@
         - daemon-reload
         - restart gotosocial
 
-    # - name: create systemd service configuration
-    #   ansible.builtin.template:
-    #     src: "gotosocial.j2"
-    #     dest: "{{ gotosocial_defaults_directory }}/gotosocial"
-    #     force: true
-    #     owner: root
-    #     group: "{{ gotosocial_system_group }}"
-    #     mode: 0640
-    #   notify:
-    #     - validate config
-    #     - reload gotosocial
+    - name: create systemd service configuration
+      ansible.builtin.template:
+        src: "gotosocial.j2"
+        dest: "{{ gotosocial_defaults_directory }}/gotosocial"
+        force: true
+        owner: root
+        group: "{{ gotosocial_system_group }}"
+        mode: 0640
+      notify:
+        - validate config
+        - reload gotosocial
 
 - name: openrc
   when:

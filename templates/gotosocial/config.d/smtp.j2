@@ -5,31 +5,46 @@
 
 # Config for sending emails via an smtp server. See https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol
 
+{% if gotosocial_config.smtp.host is defined and
+      gotosocial_config.smtp.host | string | length > 0 %}
 # String. The hostname of the smtp server you want to use.
 # If this is not set, smtp will not be used to send emails, and you can ignore the other settings.
 # Examples: ["mail.example.org", "localhost"]
 # Default: ""
-smtp-host: ""
+smtp-host: "{{ gotosocial_config.smtp.host }}"
+{% endif %}
 
+{% if gotosocial_config.smtp.port is defined and
+      gotosocial_config.smtp.port | string | length > 0 %}
 # Int. Port to use to connect to the smtp server.
 # Examples: []
 # Default: 0
-smtp-port: 0
+smtp-port: {{ gotosocial_config.smtp.port }}
+{% endif %}
 
+{% if gotosocial_config.smtp.username is defined and
+      gotosocial_config.smtp.username | string | length > 0 %}
 # String. Username to use when authenticating with the smtp server.
 # This should have been provided to you by your smtp host.
 # This is often, but not always, an email address.
 # Examples: ["maillord@example.org"]
 # Default: ""
-smtp-username: ""
+smtp-username: "{{ gotosocial_config.smtp.username }}"
+{% endif %}
 
+{% if gotosocial_config.smtp.password is defined and
+      gotosocial_config.smtp.password | string | length > 0 %}
 # String. Password to use when authenticating with the smtp server.
 # This should have been provided to you by your smtp host.
 # Examples: ["1234", "password"]
 # Default: ""
-smtp-password: ""
+smtp-password: "{{ gotosocial_config.smtp.password }}"
+{% endif %}
 
+{% if gotosocial_config.smtp.from is defined and
+      gotosocial_config.smtp.from | string | length > 0 %}
 # String. 'From' address for sent emails.
 # Examples: ["mail@example.org"]
 # Default: ""
-smtp-from: ""
+smtp-from: "{{ gotosocial_config.smtp.from }}"
+{% endif %}
