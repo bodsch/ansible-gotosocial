@@ -32,7 +32,7 @@ jobs:
         ansible-version:
           - '6.1'
         scenario:
-          - default
+          - configured
 
     steps:
       - name: check out the codebase.
@@ -53,7 +53,7 @@ jobs:
       - name: test with tox
         run: |
           tox -e ansible_$(printf "${{ matrix.ansible-version }}") \
-            -- molecule test --scenario-name configured
+            -- molecule test --scenario-name ${{ matrix.scenario }}
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'

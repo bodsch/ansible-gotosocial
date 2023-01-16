@@ -55,14 +55,4 @@
     copy: false
   register: _extract_archive
 
-# - name: extract web-assets archive
-#   become: false
-#   delegate_to: "{{ gotosocial_delegate_to }}"
-#   run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
-#   ansible.builtin.unarchive:
-#     src: "{{ gotosocial_local_tmp_directory }}/{{ __gotosocial_files.assets }}"
-#     dest: "{{ gotosocial_local_tmp_directory }}"
-#     copy: false
-#   register: _extract_archive
-
 ...
