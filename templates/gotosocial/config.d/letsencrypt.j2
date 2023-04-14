@@ -12,7 +12,7 @@
 # If you don't, then turn it on so that you can use https.
 # Options: [true, false]
 # Default: false
-letsencrypt-enabled: {{ gotosocial_config.letsencrypt.enabled | bool | ternary('true', 'false') }}
+letsencrypt-enabled: {{ gotosocial_config.letsencrypt.enabled | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
   {% if gotosocial_config.letsencrypt.enabled %}
 
     {% if gotosocial_config.letsencrypt.port is defined and

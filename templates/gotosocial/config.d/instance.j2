@@ -10,7 +10,7 @@
 # users (members of the instance) will still be able to query the endpoint.
 # Options: [true, false]
 # Default: false
-instance-expose-peers: {{ gotosocial_config.instance.expose.peers | bool | ternary('true', 'false') }}
+instance-expose-peers: {{ gotosocial_config.instance.expose.peers | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
 {% endif %}
 
 {% if gotosocial_config.instance.expose.suspended is defined %}
@@ -20,7 +20,7 @@ instance-expose-peers: {{ gotosocial_config.instance.expose.peers | bool | terna
 # of the instance) will still be able to query the endpoint.
 # Options: [true, false]
 # Default: false
-instance-expose-suspended: {{ gotosocial_config.instance.expose.suspended | bool | ternary('true', 'false') }}
+instance-expose-suspended: {{ gotosocial_config.instance.expose.suspended | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
 {% endif %}
 
 {% if gotosocial_config.instance.expose.public_timeline is defined %}
@@ -29,7 +29,7 @@ instance-expose-suspended: {{ gotosocial_config.instance.expose.suspended | bool
 # users (members of the instance) will still be able to query the endpoint.
 # Options: [true, false]
 # Default: false
-instance-expose-public-timeline: {{ gotosocial_config.instance.expose.public_timeline | bool | ternary('true', 'false') }}
+instance-expose-public-timeline: {{ gotosocial_config.instance.expose.public_timeline | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
 {% endif %}
 
 {% if gotosocial_config.instance.deliver_to_shared_inboxes is defined %}
@@ -44,5 +44,5 @@ instance-expose-public-timeline: {{ gotosocial_config.instance.expose.public_tim
 #
 # Options: [true, false]
 # Default: true
-instance-deliver-to-shared-inboxes: {{ gotosocial_config.instance.deliver_to_shared_inboxes | bool | ternary('true', 'false') }}
+instance-deliver-to-shared-inboxes: {{ gotosocial_config.instance.deliver_to_shared_inboxes | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
 {% endif %}

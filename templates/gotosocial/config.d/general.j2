@@ -17,7 +17,7 @@ log-level: "{{ gotosocial_config.general.log_level }}"
 # when you're trying to track an issue down.
 # Options: [true, false]
 # Default: false
-log-db-queries: {{ gotosocial_config.general.log_db_queries | bool | ternary('true', 'false') }}
+log-db-queries: {{ gotosocial_config.general.log_db_queries | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
 {% endif %}
 
 {% if gotosocial_config.general.application_name is defined and

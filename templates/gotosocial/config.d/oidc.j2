@@ -11,7 +11,7 @@
 # internal oauth flow will be used, where users sign in to GtS with username/password.
 # Options: [true, false]
 # Default: false
-oidc-enabled: {{ gotosocial_config.oidc.enabled | bool | ternary('true', 'false') }}
+oidc-enabled: {{ gotosocial_config.oidc.enabled | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
   {% if gotosocial_config.oidc.enabled %}
 
     {% if gotosocial_config.oidc.idp_name is defined and
@@ -29,7 +29,7 @@ oidc-idp-name: "{{ gotosocial_config.oidc.idp_name }}
 # never ever in a production environment as it's extremely unsafe!
 # Options: [true, false]
 # Default: false
-oidc-skip-verification: {{ gotosocial_config.oidc.skip_verification | bool | ternary('true', 'false') }}
+oidc-skip-verification: {{ gotosocial_config.oidc.skip_verification | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
     {% endif %}
 
     {% if gotosocial_config.oidc.issuer is defined and

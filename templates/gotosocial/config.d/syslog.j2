@@ -15,7 +15,7 @@
 # Bool. Enable the syslog logging hook. Logs will be mirrored to the configured destination.
 # Options: [true, false]
 # Default: false
-syslog-enabled: {{ gotosocial_config.syslog.enabled | bool | ternary('true', 'false') }}
+syslog-enabled: {{ gotosocial_config.syslog.enabled | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
 
   {% if gotosocial_config.syslog.protocol is defined or
         gotosocial_config.syslog.protocol in ["udp", "tcp"] %}

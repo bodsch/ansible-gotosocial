@@ -8,21 +8,21 @@
 # Bool. Do we want people to be able to just submit sign up requests, or do we want invite only?
 # Options: [true, false]
 # Default: true
-accounts-registration-open: {{ gotosocial_config.accounts.registration_open | bool | ternary('true', 'false') }}
+accounts-registration-open: {{ gotosocial_config.accounts.registration_open | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
 {% endif %}
 
 {% if gotosocial_config.accounts.expose.approval_required is defined %}
 # Bool. Do sign up requests require approval from an admin/moderator before an account can sign in/use the server?
 # Options: [true, false]
 # Default: true
-accounts-approval-required: {{ gotosocial_config.accounts.approval_required | bool | ternary('true', 'false') }}
+accounts-approval-required: {{ gotosocial_config.accounts.approval_required | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
 {% endif %}
 
 {% if gotosocial_config.accounts.reason_required is defined %}
 # Bool. Are sign up requests required to submit a reason for the request (eg., an explanation of why they want to join the instance)?
 # Options: [true, false]
 # Default: true
-accounts-reason-required: {{ gotosocial_config.accounts.reason_required | bool | ternary('true', 'false') }}
+accounts-reason-required: {{ gotosocial_config.accounts.reason_required | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
 {% endif %}
 
 {% if gotosocial_config.accounts.allow_custom_css is defined %}
@@ -40,5 +40,5 @@ accounts-reason-required: {{ gotosocial_config.accounts.reason_required | bool |
 #
 # Options: [true, false]
 # Default: false
-accounts-allow-custom-css: {{ gotosocial_config.accounts.allow_custom_css | bool | ternary('true', 'false') }}
+accounts-allow-custom-css: {{ gotosocial_config.accounts.allow_custom_css | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
 {% endif %}

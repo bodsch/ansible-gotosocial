@@ -38,7 +38,7 @@ storage-s3-endpoint: "{{ gotosocial_config.storage.s3.endpoint }}"
 # Bool. If data stored in S3 should be proxied through GoToSocial instead of redirecting to a presigned URL.
 #
 # Default: false
-storage-s3-proxy: {{ gotosocial_config.storage.s3.proxy | bool | ternary('true', 'false') }}
+storage-s3-proxy: {{ gotosocial_config.storage.s3.proxy | bool | bodsch.core.config_bool(true_as='true', false_as='false') }}
   {% endif %}
 
   {% if gotosocial_config.storage.s3.access_key is defined and
