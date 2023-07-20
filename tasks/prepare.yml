@@ -20,18 +20,6 @@
         - default.yaml
       skip: true
 
-- name: update package cache
-  ansible.builtin.package:
-    update_cache: true
-
-- name: define delegate instance for download handling
-  ansible.builtin.set_fact:
-    gotosocial_delegate_to: "{{ ansible_host }}"
-    gotosocial_local_tmp_directory: "{{
-        lookup('env', 'CUSTOM_LOCAL_TMP_DIRECTORY') |
-        default('/var/cache/ansible/gotosocial', true) }}/{{ gotosocial_version }}"
-  when:
-    - gotosocial_direct_download
 
 - name: install dependency
   ansible.builtin.package:
@@ -40,79 +28,6 @@
   when:
     - gotosocial_requirements | default([]) | count > 0
 
-- name: get latest release
-  delegate_to: localhost
-  become: false
-  run_once: true
-  when:
-    - gotosocial_version == "latest"
-  block:
-    - name: get latest release
-      delegate_to: localhost
-      become: false
-      run_once: true
-      bodsch.scm.github_latest:
-        project: superseriousbusiness
-        repository: gotosocial
-        user: "{{ lookup('env', 'GH_USER') | default(omit) }}"
-        password: "{{ lookup('env', 'GH_TOKEN') | default(omit) }}"
-      register: _latest_release
-
-    - name: re-define gotosocial_version
-      ansible.builtin.set_fact:
-        gotosocial_version: "{{ _latest_release.latest_release }}"
-
-- name: detect our installation path
-  ansible.builtin.stat:
-    path: "{{ gotosocial_install_path | dirname }}"
-    get_checksum: false
-  register: stat_gotosocial_path
-  ignore_errors: true
-
-- name: detect installed gotosocial binary
-  ansible.builtin.stat:
-    path: "{{ gotosocial_install_path }}/gotosocial"
-  register: stat_gotosocial_binary
-
-- name: create download directory
-  become: false
-  delegate_to: "{{ gotosocial_delegate_to }}"
-  ansible.builtin.file:
-    path: "{{ gotosocial_local_tmp_directory }}"
-    state: directory
-    mode: 0750
-
-- name: user and group handling
-  when:
-    - gotosocial_system_user != "root" or gotosocial_system_group != "root"
-  block:
-    - name: create gotosocial group
-      ansible.builtin.group:
-        name: "{{ gotosocial_system_group }}"
-        state: present
-        system: true
-      when:
-        - gotosocial_system_group != "root"
-
-    - name: create gotosocial user
-      ansible.builtin.user:
-        name: "{{ gotosocial_system_user }}"
-        groups: "{{ gotosocial_system_group }}"
-        append: true
-        shell: /usr/sbin/nologin
-        system: true
-        createhome: false
-        home: /nonexistent
-      when:
-        - gotosocial_system_user != "root"
-
-- name: create install directory
-  ansible.builtin.file:
-    path: "{{ gotosocial_install_path }}"
-    state: directory
-    owner: "{{ gotosocial_system_user }}"
-    group: "{{ gotosocial_system_group }}"
-    mode: 0755
 
 - name: merge gotosocial configuration between defaults and custom
   ansible.builtin.set_fact:

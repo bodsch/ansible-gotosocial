@@ -1,53 +1,127 @@
 ---
 
-- name: detect binary file for gotosocial on {{ gotosocial_delegate_to }}
+- name: user and group handling
+  when:
+    - gotosocial_system_user != "root" or gotosocial_system_group != "root"
+  block:
+    - name: create gotosocial group
+      ansible.builtin.group:
+        name: "{{ gotosocial_system_group }}"
+        state: present
+        system: true
+      when:
+        - gotosocial_system_group != "root"
+
+    - name: create gotosocial user
+      ansible.builtin.user:
+        name: "{{ gotosocial_system_user }}"
+        groups: "{{ gotosocial_system_group }}"
+        append: true
+        shell: /usr/sbin/nologin
+        system: true
+        createhome: false
+        home: /nonexistent
+      when:
+        - gotosocial_system_user != "root"
+
+- name: create install directory
+  ansible.builtin.file:
+    path: "{{ gotosocial_install_path }}"
+    state: directory
+    owner: "{{ gotosocial_system_user }}"
+    group: "{{ gotosocial_system_group }}"
+    mode: 0755
+
+- name: detect binary file for gotosocial on '{{ gotosocial_delegate_to }}'
   become: false
   delegate_to: "{{ gotosocial_delegate_to }}"
+  run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
   ansible.builtin.stat:
     path: "{{ gotosocial_local_tmp_directory }}/gotosocial"
   register: stat_file_binary
 
-- name: propagate gotosocial binaries
-  ansible.builtin.copy:
-    src: "{{ gotosocial_local_tmp_directory }}/gotosocial"
-    dest: "{{ gotosocial_install_path }}/gotosocial"
-    mode: 0755
-    owner: "{{ gotosocial_system_user }}"
-    group: "{{ gotosocial_system_group }}"
-    remote_src: "{{ 'true' if gotosocial_direct_download else 'false' }}"
+- name: fail when extracted binary are missing
+  ansible.builtin.fail:
+    msg: "missing extracted binary on ansible controller"
   when:
-    - stat_file_binary.stat.exists
+    - not stat_file_binary.stat.exists
 
-- name: propagate gotosocial asset
-  ansible.builtin.copy:
-    src: "{{ gotosocial_local_tmp_directory }}/{{ __gotosocial_files.assets }}"
-    dest: "{{ gotosocial_data_dir }}/"
-    mode: 0755
-    owner: "{{ gotosocial_system_user }}"
-    group: "{{ gotosocial_system_group }}"
-    remote_src: "{{ 'true' if gotosocial_direct_download else 'false' }}"
+- name: detect installed gotosocial binary
+  ansible.builtin.stat:
+    path: "{{ gotosocial_install_path }}/{{ gotosocial_release.binary }}"
+  register: stat_gotosocial_binary
+
+- name: detect activated gotosocial binary
+  ansible.builtin.stat:
+    path: /usr/bin/{{ gotosocial_release.binary }}
+  register: stat_gotosocial_activated
+
+- name: install and activate gotosocial
   when:
-    - stat_file_binary.stat.exists
+    - (stat_gotosocial_binary.stat is defined and not stat_gotosocial_binary.stat.exists | default('false')) or
+      not stat_gotosocial_activated.stat | bodsch.core.linked_version(gotosocial_install_path, gotosocial_version)
+  block:
+    - name: propagate files
+      block:
 
-- name: extract web-assets archive
-  ansible.builtin.unarchive:
-    src: "{{ gotosocial_data_dir }}/{{ __gotosocial_files.assets }}"
-    dest: "{{ gotosocial_install_path }}/"
-    copy: false
-  register: _extract_archive
+        - name: propagate gotosocial binaries
+          ansible.builtin.copy:
+            src: "{{ gotosocial_local_tmp_directory }}/gotosocial"
+            dest: "{{ gotosocial_install_path }}/gotosocial"
+            mode: 0755
+            owner: "{{ gotosocial_system_user }}"
+            group: "{{ gotosocial_system_group }}"
+            remote_src: "{{ 'true' if gotosocial_direct_download else 'false' }}"
+          when:
+            - stat_file_binary.stat.exists
 
-- name: make files executable
-  ansible.builtin.file:
-    path: "{{ gotosocial_install_path }}/gotosocial"
-    mode: 0755
-    owner: "{{ gotosocial_system_user }}"
-    group: "{{ gotosocial_system_group }}"
+        - name: propagate gotosocial asset
+          ansible.builtin.copy:
+            src: "{{ gotosocial_local_tmp_directory }}/{{ gotosocial_release.assets }}"
+            dest: "{{ gotosocial_data_dir }}/"
+            mode: 0755
+            owner: "{{ gotosocial_system_user }}"
+            group: "{{ gotosocial_system_group }}"
+            remote_src: "{{ 'true' if gotosocial_direct_download else 'false' }}"
+          when:
+            - stat_file_binary.stat.exists
 
-- name: create custom fact file
-  bodsch.core.facts:
-    name: gotosocial
-    facts:
-      version: "{{ gotosocial_version }}"
+        - name: extract web-assets archive
+          ansible.builtin.unarchive:
+            src: "{{ gotosocial_data_dir }}/{{ gotosocial_release.assets }}"
+            dest: "{{ gotosocial_install_path }}/"
+            copy: false
+          register: _extract_archive
+
+        - name: create link to binary
+          ansible.builtin.file:
+            src: "{{ gotosocial_install_path }}/gotosocial"
+            dest: "/usr/bin/gotosocial"
+            state: link
+            force: true
+            follow: false
+          notify:
+            - restart gotosocial
+
+        - name: create link to assets
+          ansible.builtin.file:
+            src: "{{ gotosocial_install_path }}/web"
+            dest: "{{ gotosocial_data_dir }}/web"
+            state: link
+            force: true
+            follow: false
+          notify:
+            - restart gotosocial
+
+      rescue:
+        - name: delete install directory
+          ansible.builtin.file:
+            path: "{{ gotosocial_install_path }}"
+            state: absent
+
+        - name: exit with fail
+          ansible.builtin.fail:
+            msg: A serious error occurred during the installation of the binary.
 
 - name: create gotosocial data directory
   ansible.builtin.file:
@@ -57,16 +131,6 @@
     owner: "{{ gotosocial_system_user }}"
     group: "{{ gotosocial_system_group }}"
 
-- name: create link to binary
-  ansible.builtin.file:
-    src: "{{ gotosocial_install_path }}/gotosocial"
-    dest: "/usr/bin/gotosocial"
-    state: link
-    force: true
-    follow: false
-  notify:
-    - restart gotosocial
-
 - name: create gotosocial local storage directory
   ansible.builtin.file:
     path: "{{ gotosocial_config.storage.local_base_path }}"
@@ -74,16 +138,6 @@
     owner: "{{ gotosocial_system_user }}"
     group: "{{ gotosocial_system_group }}"
     mode: 0755
-
-- name: create link to assets
-  ansible.builtin.file:
-    src: "{{ gotosocial_install_path }}/web"
-    dest: "{{ gotosocial_data_dir }}/web"
-    state: link
-    force: true
-    follow: false
-  notify:
-    - restart gotosocial
 
 - name: systemd
   when:
@@ -102,7 +156,7 @@
 
     - name: create systemd service configuration
       ansible.builtin.template:
-        src: "gotosocial.j2"
+        src: "default/gotosocial.j2"
         dest: "{{ gotosocial_defaults_directory }}/gotosocial"
         force: true
         owner: root
@@ -131,5 +185,11 @@
         owner: root
         group: root
         mode: 0750
+
+- name: create custom fact file
+  bodsch.core.facts:
+    name: gotosocial
+    facts:
+      version: "{{ gotosocial_version }}"
 
 ...

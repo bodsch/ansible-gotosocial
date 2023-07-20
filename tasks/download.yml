@@ -1,74 +1,189 @@
 ---
 
-- name: checksum
-  become: false
+- name: get latest release
   delegate_to: localhost
+  become: false
   run_once: true
+  when:
+    - gotosocial_version == "latest"
   block:
-    - name: get checksum list
-      bodsch.scm.github_checksum:
+    - name: get latest release
+      delegate_to: localhost
+      become: false
+      run_once: true
+      bodsch.scm.github_latest:
         project: superseriousbusiness
         repository: gotosocial
-        checksum_file: "{{ __gotosocial_files.checksum }}"
         user: "{{ lookup('env', 'GH_USER') | default(omit) }}"
         password: "{{ lookup('env', 'GH_TOKEN') | default(omit) }}"
-        architecture: "{{ ansible_architecture }}"
-        system: "{{ ansible_facts.system }}"
-        version: "v{{ gotosocial_version }}"
-      register: _latest_checksum
+        github_tags: "{{ gotosocial_scm.use_tags | default('false') }}"
+        without_beta: "{{ gotosocial_scm.without_beta | default('false') }}"
+        filter_elements: "{{ gotosocial_scm.version_filter | default([]) }}"
+      register: _latest_release
 
-    - name: define checksum for {{ go_arch }} architecture
+    - name: re-define gotosocial_version
       ansible.builtin.set_fact:
-        __gotosocial_checksum: "{{ _latest_checksum.checksum }}"
-      when:
-        - _latest_checksum.rc == 0
-        - _latest_checksum.checksum is defined
-        - _latest_checksum.checksum | string | length > 0
+        gotosocial_version: "{{ _latest_release.latest_release }}"
 
-    - name: define checksum for web-assets
-      ansible.builtin.set_fact:
-        __gotosocial_assets_checksum: "{{ _latest_checksum.checksums | gotosocial_assets_checksum() }}"
-      when:
-        - _latest_checksum.rc == 0
-        - _latest_checksum.checksums is defined
-        - _latest_checksum.checksums | count > 0
+- name: define download information
+  ansible.builtin.set_fact:
+    gotosocial_release: "{{ gotosocial_defaults_release | combine(gotosocial_release, recursive=True) }}"
 
-- name: download gotosocial binary archive
+- name: define delegate instance for download handling
+  ansible.builtin.set_fact:
+    gotosocial_delegate_to: "{{ ansible_host }}"
+    gotosocial_local_tmp_directory: "{{
+        lookup('env', 'CUSTOM_LOCAL_TMP_DIRECTORY') |
+        default('/var/cache/ansible/gotosocial', true) }}/{{ gotosocial_version }}"
+  when:
+    - gotosocial_direct_download
+
+- name: create download directory
   become: false
   delegate_to: "{{ gotosocial_delegate_to }}"
-  ansible.builtin.get_url:
-    url: "{{ gotosocial_release_download_url }}/download/v{{ gotosocial_version }}/{{ __gotosocial_files.archive }}"
-    dest: "{{ gotosocial_local_tmp_directory }}/"
-    checksum: "sha256:{{ __gotosocial_checksum }}"
-    mode: 0660
-  register: _download_archive
-  until: _download_archive is succeeded
-  retries: 5
-  delay: 2
-  check_mode: false
+  run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
+  ansible.builtin.file:
+    path: "{{ gotosocial_local_tmp_directory }}"
+    state: directory
+    mode: 0750
 
-- name: download web-assets archive
+- name: detect the downloaded gotosocial archive
   become: false
   delegate_to: "{{ gotosocial_delegate_to }}"
-  ansible.builtin.get_url:
-    url: "{{ gotosocial_release_download_url }}/download/v{{ gotosocial_version }}/{{ __gotosocial_files.assets }}"
-    dest: "{{ gotosocial_local_tmp_directory }}/"
-    checksum: "sha256:{{ __gotosocial_assets_checksum }}"
-    mode: 0660
-  register: _download_archive
-  until: _download_archive is succeeded
-  retries: 5
-  delay: 2
-  check_mode: false
+  run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
+  ansible.builtin.stat:
+    path: "{{ gotosocial_local_tmp_directory }}/{{ gotosocial_release.archive }}"
+  register: stat_gotosocial_archive
+
+- name: detect the downloaded gotosocial assets archive
+  become: false
+  delegate_to: "{{ gotosocial_delegate_to }}"
+  run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
+  ansible.builtin.stat:
+    path: "{{ gotosocial_local_tmp_directory }}/{{ gotosocial_release.assets }}"
+  register: stat_gotosocial_assets_archive
+
+- name: download
+  when:
+    - (stat_gotosocial_archive.stat is defined and not stat_gotosocial_archive.stat.exists | default('false')) or
+      (stat_gotosocial_assets_archive.stat is defined and not stat_gotosocial_assets_archive.stat.exists | default('false'))
+  block:
+    - name: checksum
+      become: false
+      delegate_to: localhost
+      run_once: true
+      block:
+        - name: get checksum list
+          bodsch.scm.github_checksum:
+            project: superseriousbusiness
+            repository: gotosocial
+            checksum_file: "{{ gotosocial_release.checksum }}"
+            user: "{{ lookup('env', 'GH_USER') | default(omit) }}"
+            password: "{{ lookup('env', 'GH_TOKEN') | default(omit) }}"
+            architecture: "{{ ansible_architecture }}"
+            system: "{{ ansible_facts.system }}"
+            version: "v{{ gotosocial_version }}"
+          register: _latest_checksum
+
+        - name: define checksum for {{ go_arch }} architecture
+          ansible.builtin.set_fact:
+            __gotosocial_checksum: "sha256:{{ _latest_checksum.checksum }}"
+          when:
+            - _latest_checksum.rc == 0
+            - _latest_checksum.checksum is defined
+            - _latest_checksum.checksum | string | length > 0
+
+        - name: define checksum for web-assets
+          ansible.builtin.set_fact:
+            __gotosocial_assets_checksum: "sha256:{{ _latest_checksum.checksums | gotosocial_assets_checksum() }}"
+          when:
+            - _latest_checksum.rc == 0
+            - _latest_checksum.checksums is defined
+            - _latest_checksum.checksums | count > 0
+
+    - name: download gotosocial binary archive
+      become: false
+      delegate_to: "{{ gotosocial_delegate_to }}"
+      run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
+      ansible.builtin.get_url:
+        url: "{{ gotosocial_release.download_url }}/download/v{{ gotosocial_version }}/{{ gotosocial_release.archive }}"
+        dest: "{{ gotosocial_local_tmp_directory }}/"
+        checksum: "{{ __gotosocial_checksum | default(omit) }}"
+        mode: 0640
+      register: _download_archive
+      until: _download_archive is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: download web-assets archive
+      become: false
+      delegate_to: "{{ gotosocial_delegate_to }}"
+      run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
+      ansible.builtin.get_url:
+        url: "{{ gotosocial_release.download_url }}/download/v{{ gotosocial_version }}/{{ gotosocial_release.assets }}"
+        dest: "{{ gotosocial_local_tmp_directory }}/"
+        checksum: "{{ __gotosocial_assets_checksum | default(omit) }}"
+        mode: 0640
+      register: _download_archive
+      until: _download_archive is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+  rescue:
+    - name: delete download directory
+      become: false
+      delegate_to: "{{ gotosocial_delegate_to }}"
+      run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
+      ansible.builtin.file:
+        path: "{{ gotosocial_local_tmp_directory }}"
+        state: absent
+
+    - name: exit with fail
+      ansible.builtin.fail:
+        msg: A serious error occurred when downloading the archive.
+
+- name: detect extracted binary
+  become: false
+  delegate_to: "{{ gotosocial_delegate_to }}"
+  run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
+  ansible.builtin.stat:
+    path: "{{ gotosocial_local_tmp_directory }}/{{ gotosocial_release.binary }}"
+  register: stat_gotosocial_binary
 
 - name: extract gotosocial archive
   become: false
   delegate_to: "{{ gotosocial_delegate_to }}"
   run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
   ansible.builtin.unarchive:
-    src: "{{ gotosocial_local_tmp_directory }}/{{ __gotosocial_files.binary }}"
-    dest: "{{ gotosocial_local_tmp_directory }}"
+    src: "{{ gotosocial_local_tmp_directory }}/{{ gotosocial_release.archive }}"
+    dest: "{{ gotosocial_local_tmp_directory }}/"
     copy: false
-  register: _extract_archive
+    #extra_opts:
+    #  - --strip-components=1
+  when:
+    - stat_gotosocial_binary.stat is defined
+    - not stat_gotosocial_binary.stat.exists | default('false')
+
+# - name: detect extracted web-assets
+#   become: false
+#   delegate_to: "{{ gotosocial_delegate_to }}"
+#   run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
+#   ansible.builtin.stat:
+#     path: "{{ gotosocial_local_tmp_directory }}/web/assets"
+#   register: stat_gotosocial_assets
+#
+# - name: extract gotosocial archive
+#   become: false
+#   delegate_to: "{{ gotosocial_delegate_to }}"
+#   run_once: "{{ 'false' if gotosocial_direct_download else 'true' }}"
+#   ansible.builtin.unarchive:
+#     src: "{{ gotosocial_local_tmp_directory }}/{{ gotosocial_release.assets }}"
+#     dest: "{{ gotosocial_local_tmp_directory }}"
+#     copy: false
+#   when:
+#     - stat_gotosocial_assets.stat is defined
+#     - not stat_gotosocial_assets.stat.exists | default('false')
 
 ...

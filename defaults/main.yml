@@ -2,12 +2,12 @@
 
 gotosocial_version: 0.6.0
 
-gotosocial_release_download_url: https://github.com/superseriousbusiness/gotosocial/releases
-
 gotosocial_system_user: gotosocial
 gotosocial_system_group: gotosocial
 gotosocial_config_dir: /etc/gotosocial
 gotosocial_data_dir: /var/lib/gotosocial
+
+gotosocial_release: {}
 
 gotosocial_direct_download: false
 

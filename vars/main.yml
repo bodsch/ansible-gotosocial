@@ -2,7 +2,7 @@
 
 gotosocial_main_version: "{{ gotosocial_version[0:3] }}"
 
-gotosocial_install_path: /usr/local/bin/gotosocial/{{ gotosocial_version }}
+gotosocial_install_path: /usr/local/opt/gotosocial/{{ gotosocial_version }}
 
 gotosocial_delegate_to: localhost
 
@@ -191,14 +191,13 @@ gotosocial_defaults_config:
 
 gotosocial_defaults_directory: /etc/default
 
-# https://github.com/superseriousbusiness/gotosocial/releases/download/v0.6.0/gotosocial_0.6.0_linux_amd64.tar.gz
-# https://github.com/superseriousbusiness/gotosocial/releases/download/v0.6.0/checksums.txt
-
-__gotosocial_files:
+gotosocial_defaults_release:
+  download_url: https://github.com/superseriousbusiness/gotosocial/releases
+  api_url: https://api.github.com/repos/superseriousbusiness/gotosocial/releases
   archive: "gotosocial_{{ gotosocial_version }}_linux_{{ system_architecture }}.tar.gz"
   assets: "gotosocial_{{ gotosocial_version }}_web-assets.tar.gz"
   checksum: "checksums.txt"
-  binary: "gotosocial_{{ gotosocial_version }}_linux_{{ system_architecture }}.tar.gz"
+  binary: gotosocial
 
 go_arch_map:
   x86_64: 'amd64'
